@@ -30,7 +30,7 @@ library
                        http-client,
                        http-types,
                        http-client-tls,
-                       aeson,
+                       aeson >= 2.0 && <2.1,
                        unordered-containers
 
   hs-source-dirs:      src

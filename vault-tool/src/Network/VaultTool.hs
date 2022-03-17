@@ -63,6 +63,7 @@ module Network.VaultTool
     , vaultListRecursive
     ) where
 
+import Data.Bifunctor
 import Data.Monoid ((<>))
 import Control.Exception (throwIO)
 import Control.Monad (liftM)
@@ -74,7 +75,8 @@ import Data.Maybe (catMaybes)
 import Network.HTTP.Client (Manager, newManager)
 import Network.HTTP.Client.TLS (tlsManagerSettings)
 import Network.HTTP.Types.Header (Header)
-import qualified Data.HashMap.Strict as H
+import qualified Data.Aeson.Key as K
+import qualified Data.Aeson.KeyMap as H
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 
@@ -345,7 +347,7 @@ instance ToJSON VaultAppRoleParameters where
         , "period" .=? _VaultAppRoleParameters_Period v
         ]
       where
-        (.=?) :: ToJSON x => Text -> Maybe x -> Maybe Pair
+        (.=?) :: ToJSON x => K.Key -> Maybe x -> Maybe Pair
         t .=? x = (t .=) <$> x
 
 instance FromJSON VaultAppRoleParameters where
@@ -504,7 +506,7 @@ vaultMounts VaultConnection{_VaultConnection_VaultAddress, _VaultConnection_Mana
 
     case parseEither parseJSON root of
         Left err -> throwIO $ VaultException_ParseBodyError "GET" reqPath (encode rspObj) err
-        Right obj -> pure $ sortOn fst (H.toList obj)
+        Right obj -> pure $ map (first K.toText) $ sortOn fst (H.toList obj)
     where
     headers = [authTokenHeader _VaultConnection_AuthToken]
 
